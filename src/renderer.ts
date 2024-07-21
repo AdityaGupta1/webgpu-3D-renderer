@@ -18,7 +18,7 @@ export async function initWebGPU() {
     canvas.width = canvas.clientWidth * devicePixelRatio;
     canvas.height = canvas.clientHeight * devicePixelRatio;
 
-    aspectRatio = canvas.height / canvas.width; // TODO: update on canvas resize (also update renderer proj matrix, may want inheritance from a base Renderer class for this)
+    aspectRatio = canvas.width / canvas.height; // TODO: update on canvas resize (also update renderer proj matrix, may want inheritance from a base Renderer class for this)
 
     if (!navigator.gpu)
     {
@@ -45,6 +45,7 @@ export async function initWebGPU() {
 
 export class TestSceneRenderer {
     vertexBuffer!: GPUBuffer;
+    indexBuffer!: GPUBuffer;
 
     viewProjMatUniformBuffer!: GPUBuffer;
 
@@ -57,22 +58,42 @@ export class TestSceneRenderer {
 
     setup() {
         const vertices = new Float32Array([
-            -0.9, -0.9, 0,
-            0.9, -0.9, 0,
-            0, 0.9, 0
+            -1, -1, -1,
+            1, -1, -1,
+            1, 1, -1,
+            -1, 1, -1,
+            -1, -1, 1,
+            1, -1, 1,
+            1, 1, 1,
+            -1, 1, 1
         ]);
         this.vertexBuffer = device.createBuffer({
-            label: "triangle vertices",
+            label: "cube vertex buffer",
             size: vertices.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
-        device.queue.writeBuffer(this.vertexBuffer, 0, vertices);        
+        device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
+
+        const indices = new Uint32Array([
+            0, 1, 3, 3, 1, 2,
+            1, 5, 2, 2, 5, 6,
+            5, 4, 6, 6, 4, 7,
+            4, 0, 7, 7, 0, 3,
+            3, 2, 7, 7, 2, 6,
+            4, 5, 0, 0, 5, 1
+        ]);
+        this.indexBuffer = device.createBuffer({
+            label: "cube index buffer",
+            size: indices.byteLength,
+            usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+        });
+        device.queue.writeBuffer(this.indexBuffer, 0, indices);
 
         const vertexBufferLayout: GPUVertexBufferLayout = {
             arrayStride: 12,
             attributes: [
                 {
-                    format: "float32x2",
+                    format: "float32x3",
                     offset: 0,
                     shaderLocation: 0
                 }
@@ -140,13 +161,11 @@ export class TestSceneRenderer {
     draw(time: number) {
         this.viewAngleRadians = 0.004 * time;
         const centerPos = [0, 0, 0];
-        const eyeHorizontalDist = 5;
-        const eyePos = [eyeHorizontalDist * Math.cos(this.viewAngleRadians), 3, eyeHorizontalDist * Math.sin(this.viewAngleRadians)];
+        const eyeHorizontalDist = 8;
+        const eyePos = [eyeHorizontalDist * Math.cos(this.viewAngleRadians), 4, eyeHorizontalDist * Math.sin(this.viewAngleRadians)];
 
         let viewMat = mat4.lookAt(eyePos, centerPos, [0, 1, 0])
-
         let viewProjMat = mat4.mul(this.projMat, viewMat);
-
         device.queue.writeBuffer(this.viewProjMatUniformBuffer, 0, viewProjMat);
 
         const encoder = device.createCommandEncoder();
@@ -166,10 +185,11 @@ export class TestSceneRenderer {
         const renderPass = encoder.beginRenderPass(renderPassDescriptor);
         renderPass.setPipeline(this.pipeline);
         renderPass.setVertexBuffer(0, this.vertexBuffer);
+        renderPass.setIndexBuffer(this.indexBuffer, 'uint32');
 
         renderPass.setBindGroup(0, this.uniformsBindGroup);
 
-        renderPass.draw(3);
+        renderPass.drawIndexed(36);
 
         renderPass.end();
 
