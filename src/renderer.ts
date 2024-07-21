@@ -22,7 +22,7 @@ export async function initWebGPU() {
 
     device = await adapter.requestDevice();
 
-    context = canvas.getContext("webgpu");
+    context = canvas.getContext("webgpu")!;
     canvasFormat = navigator.gpu.getPreferredCanvasFormat();
     context.configure({
         device: device,
@@ -33,8 +33,8 @@ export async function initWebGPU() {
 }
 
 export class TestSceneRenderer {
-    vertexBuffer;
-    pipeline;
+    vertexBuffer!: GPUBuffer;
+    pipeline!: GPURenderPipeline;
 
     setup() {
         const vertices = new Float32Array([
@@ -49,7 +49,7 @@ export class TestSceneRenderer {
         });
         device.queue.writeBuffer(this.vertexBuffer, 0, vertices);        
 
-        const vertexBufferLayout = {
+        const vertexBufferLayout: GPUVertexBufferLayout = {
             arrayStride: 8,
             attributes: [
                 {
@@ -85,7 +85,7 @@ export class TestSceneRenderer {
         const encoder = device.createCommandEncoder();
         const textureView = context.getCurrentTexture().createView();
 
-        const renderPassDescriptor = {
+        const renderPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
                     view: textureView,
