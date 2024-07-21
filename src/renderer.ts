@@ -4,7 +4,7 @@ import { toRadians } from './math_util';
 import testSceneVertSrc from './shaders/test_scene.vert.wgsl?raw';
 import testSceneFragSrc from './shaders/test_scene.frag.wgsl?raw';
 
-var canvas;
+var canvas: HTMLCanvasElement;
 var canvasFormat: GPUTextureFormat;
 var context: GPUCanvasContext;
 var device: GPUDevice;
@@ -50,6 +50,8 @@ export class TestSceneRenderer {
     viewProjMatUniformBuffer!: GPUBuffer;
 
     uniformsBindGroup!: GPUBindGroup;
+
+    depthTexture!: GPUTexture;
 
     pipeline!: GPURenderPipeline;
 
@@ -176,8 +178,19 @@ export class TestSceneRenderer {
             bindGroupLayouts: [ uniformsBindGroupLayout ]
         });
 
+        this.depthTexture = device.createTexture({
+            size: [canvas.width, canvas.height],
+            format: "depth24plus",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
+        });
+
         this.pipeline = device.createRenderPipeline({
             layout: pipelineLayout,
+            depthStencil: {
+                depthWriteEnabled: true,
+                depthCompare: "less",
+                format: "depth24plus"
+            },
             vertex: {
                 module: device.createShaderModule({
                     label: "test scene vert shader",
@@ -218,11 +231,17 @@ export class TestSceneRenderer {
             colorAttachments: [
                 {
                     view: textureView,
-                    loadOp: "clear",
                     clearValue: [0, 0, 0, 1],
-                    storeOp: "store",
+                    loadOp: "clear",
+                    storeOp: "store"
                 }
-            ]
+            ],
+            depthStencilAttachment: {
+                view: this.depthTexture.createView(),
+                depthClearValue: 1.0,
+                depthLoadOp: "clear",
+                depthStoreOp: "store"
+            }
         }
 
         const renderPass = encoder.beginRenderPass(renderPassDescriptor);
