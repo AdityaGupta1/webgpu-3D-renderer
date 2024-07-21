@@ -5,6 +5,4 @@ await initWebGPU();
 const renderer = new TestSceneRenderer();
 renderer.setup();
 
-setInterval(function() {
-    renderer.draw();
-}, 1000 / 60);
+requestAnimationFrame((t) => renderer.draw(t));
