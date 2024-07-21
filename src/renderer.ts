@@ -58,14 +58,41 @@ export class TestSceneRenderer {
 
     setup() {
         const vertices = new Float32Array([
-            -1, -1, -1,
-            1, -1, -1,
-            1, 1, -1,
-            -1, 1, -1,
-            -1, -1, 1,
-            1, -1, 1,
-            1, 1, 1,
-            -1, 1, 1
+            // front
+            -1, -1, -1,  0, 0,
+             1, -1, -1,  1, 0,
+             1,  1, -1,  1, 1,
+            -1,  1, -1,  0, 1,
+
+            // back
+            -1, -1,  1,  0, 0,
+             1, -1,  1,  1, 0,
+             1,  1,  1,  1, 1,
+            -1,  1,  1,  0, 1,
+
+            // top
+            -1,  1, -1,  0, 0,
+             1,  1, -1,  1, 0,
+             1,  1,  1,  1, 1,
+            -1,  1,  1,  0, 1,
+
+            // bottom
+            -1, -1, -1,  0, 0,
+             1, -1, -1,  1, 0,
+             1, -1,  1,  1, 1,
+            -1, -1,  1,  0, 1,
+
+            // right
+             1, -1, -1,  0, 0,
+             1,  1, -1,  1, 0,
+             1,  1,  1,  1, 1,
+             1, -1,  1,  0, 1,
+
+            // left
+            -1, -1, -1,  0, 0,
+            -1,  1, -1,  1, 0,
+            -1,  1,  1,  1, 1,
+            -1, -1,  1,  0, 1,
         ]);
         this.vertexBuffer = device.createBuffer({
             label: "cube vertex buffer",
@@ -75,12 +102,23 @@ export class TestSceneRenderer {
         device.queue.writeBuffer(this.vertexBuffer, 0, vertices);
 
         const indices = new Uint32Array([
-            0, 1, 3, 3, 1, 2,
-            1, 5, 2, 2, 5, 6,
-            5, 4, 6, 6, 4, 7,
-            4, 0, 7, 7, 0, 3,
-            3, 2, 7, 7, 2, 6,
-            4, 5, 0, 0, 5, 1
+            // front
+            0, 1, 2,  0, 2, 3,
+
+            // back
+            4, 5, 6,  4, 6, 7,
+
+            // top
+            8, 9, 10, 8, 10, 11,
+
+            // bottom
+            12, 13, 14, 12, 14, 15,
+
+            // right
+            16, 17, 18, 16, 18, 19,
+
+            // left
+            20, 21, 22, 20, 22, 23,
         ]);
         this.indexBuffer = device.createBuffer({
             label: "cube index buffer",
@@ -90,12 +128,17 @@ export class TestSceneRenderer {
         device.queue.writeBuffer(this.indexBuffer, 0, indices);
 
         const vertexBufferLayout: GPUVertexBufferLayout = {
-            arrayStride: 12,
+            arrayStride: 20,
             attributes: [
-                {
+                { // pos
                     format: "float32x3",
                     offset: 0,
                     shaderLocation: 0
+                },
+                { // uv
+                    format: "float32x2",
+                    offset: 12,
+                    shaderLocation: 1
                 }
             ]
         };
