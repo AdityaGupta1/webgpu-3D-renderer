@@ -7,7 +7,11 @@ var context: GPUCanvasContext;
 var device: GPUDevice;
 
 export async function initWebGPU() {
-    canvas = document.querySelector("canvas")!;
+    canvas = <HTMLCanvasElement> document.getElementById("mainCanvas")!;
+
+    const devicePixelRatio = window.devicePixelRatio;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
 
     if (!navigator.gpu)
     {
