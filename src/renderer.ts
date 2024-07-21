@@ -1,12 +1,13 @@
-import { passthrough2dVertSrc } from './shaders/passthrough_2d.vert.js';
-import { redFragSrc } from './shaders/red.frag.js';
+import passthrough2dVertSrc from './shaders/passthrough_2d.vert.wgsl?raw';
+import redFragSrc from './shaders/red.frag.wgsl?raw';
 
-var canvas, canvasFormat;
-var context;
-var device;
+var canvas;
+var canvasFormat: GPUTextureFormat;
+var context: GPUCanvasContext;
+var device: GPUDevice;
 
 export async function initWebGPU() {
-    canvas = document.querySelector("canvas");
+    canvas = document.querySelector("canvas")!;
 
     if (!navigator.gpu)
     {
